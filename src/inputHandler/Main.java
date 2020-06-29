@@ -3,9 +3,9 @@ package inputHandler;
 import java.io.*;
 import java.net.*;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Controller;
-import org.lwjgl.input.Controllers;
+import net.java.games.input.Component;
+import net.java.games.input.Controller;
+import net.java.games.input.ControllerEnvironment;
 
 import inputHandler.GameController.ControllerInput;
 
@@ -14,28 +14,17 @@ public class Main {
 	static Controller cont;
 	static InetAddress address;
 	static DatagramSocket socket;
+	
+	static Component xAxis;
+	static Component yAxis;
 
 	public static void main(String[] args) {
-		
-		try {
-			Controllers.create();
-		} catch (LWJGLException e) {
-			e.printStackTrace();
-		}
-		
-		Controllers.poll();
-		
-		for(int i = 0; i < Controllers.getControllerCount(); i++) {
-			cont = Controllers.getController(i);
-			if(cont.getName() == "Wireless Controller") {
-				break;
-			}
-		}
-		
-		/**
-		for(int i = 0; i < cont.getButtonCount(); i++) {
-			System.out.println(cont.getButtonName(i));
+		ControllerEnvironment ce = ControllerEnvironment.getDefaultEnvironment();
+		Controller[] ca = ce.getControllers();
+		/*for(int i =0; i < ca.length; i++){
+			System.out.println(ca[i].getName());
 		}*/
+		cont = ca[3];
 		
 		try {
 			address = InetAddress.getByName("173.230.158.61");
@@ -50,8 +39,17 @@ public class Main {
 		ControllerInput.Builder cib = ControllerInput.newBuilder();
 		while(true) {
 			cont.poll();
-			cib.setXAxisValue(cont.getXAxisValue());
-			cib.setYAxisValue(cont.getYAxisValue());
+			
+			Component[] comps = cont.getComponents();
+			/*for(int i = 0; i < comps.length; i++) {
+				System.out.println(comps[i].getName());
+			}*/
+			
+			xAxis = comps[14];
+			yAxis = comps[15];
+			
+			cib.setXAxisValue(xAxis.getPollData());
+			cib.setYAxisValue(yAxis.getPollData());
 			ControllerInput ci = cib.build();
 			
 			byte[] buf = ci.toByteArray();
@@ -63,7 +61,7 @@ public class Main {
 				e.printStackTrace();
 			}
 			
-			System.out.println(cont.getXAxisValue() + ", " + cont.getYAxisValue());
+			System.out.println(xAxis.getPollData() + ", " + yAxis.getPollData());
 		}
 	}
 
